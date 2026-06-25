@@ -1,4 +1,5 @@
 import { ACADEMY, NAV_LINKS, SOCIAL_LINKS } from "@/lib/constants";
+import { Logo } from "@/components/layout/Logo";
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -8,8 +9,8 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="md:col-span-2">
-            <h3 className="text-xl font-bold gradient-text">{ACADEMY.name}</h3>
-            <p className="mt-3 text-muted max-w-sm leading-relaxed">
+            <Logo size="lg" />
+            <p className="mt-4 text-muted max-w-sm leading-relaxed">
               {ACADEMY.tagline}. A playground for learning new technologies,
               building production-grade skills, and contributing real projects.
             </p>

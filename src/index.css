@@ -9,6 +9,7 @@
   --card: #ffffff;
   --border: #e2e8f0;
   --font-plus-jakarta: "Plus Jakarta Sans", system-ui, sans-serif;
+  --navbar-height: 4.25rem;
 }
 
 @theme inline {

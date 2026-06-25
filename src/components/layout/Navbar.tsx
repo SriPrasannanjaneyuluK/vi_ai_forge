@@ -1,18 +1,43 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { ACADEMY, NAV_LINKS } from "@/lib/constants";
+import { NAV_LINKS } from "@/lib/constants";
 import { EASE_OUT, slideDown } from "@/lib/motion";
 import { cn, scrollToSection } from "@/lib/utils";
 import { MagneticButton } from "@/components/motion/MagneticButton";
+import { Logo } from "@/components/layout/Logo";
 
 const SECTION_IDS = ["courses", "practice", "community", "contact"];
 
 export function Navbar() {
+  const headerRef = useRef<HTMLElement>(null);
+  const logoRef = useRef<HTMLImageElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const [loginToast, setLoginToast] = useState(false);
+
+  useEffect(() => {
+    const logo = logoRef.current;
+    const header = headerRef.current;
+    if (!logo || !header) return;
+
+    const syncNavbarHeight = () => {
+      const height = Math.round(logo.getBoundingClientRect().height);
+      header.style.height = `${height}px`;
+      document.documentElement.style.setProperty(
+        "--navbar-height",
+        `${height}px`
+      );
+    };
+
+    syncNavbarHeight();
+
+    const observer = new ResizeObserver(syncNavbarHeight);
+    observer.observe(logo);
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -55,24 +80,30 @@ export function Navbar() {
   return (
     <>
       <motion.header
+        ref={headerRef}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 transition-all duration-500",
-          scrolled ? "glass shadow-sm py-3" : "bg-transparent py-5"
+          "fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-300",
+          scrolled ? "shadow-md" : ""
         )}
+        style={{
+          boxShadow: scrolled
+            ? undefined
+            : "inset 0 -1px 0 0 rgb(226 232 240 / 0.6)",
+        }}
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.1 }}
       >
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 lg:px-8">
+        <nav className="mx-auto flex h-full max-w-7xl items-center justify-between px-6 lg:px-8">
           <a
             href="#"
             onClick={(e) => {
               e.preventDefault();
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className="text-xl font-bold tracking-tight"
+            className="flex h-full shrink-0 items-center leading-[0]"
           >
-            <span className="gradient-text">{ACADEMY.name}</span>
+            <Logo ref={logoRef} size="nav" />
           </a>
 
           <div className="hidden lg:flex items-center gap-1">
@@ -111,6 +142,7 @@ export function Navbar() {
             </button>
             <MagneticButton
               variant="primary"
+              className="!py-2 !text-xs sm:!text-sm"
               onClick={() => handleNavClick("#courses")}
             >
               Start Building

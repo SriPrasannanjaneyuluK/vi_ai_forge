@@ -3,6 +3,7 @@ export const ACADEMY = {
   tagline: "Code With Confidence",
   caption: "we teach technology",
   email: "hello@vjaiforge.com",
+  logo: "/logo.png",
 };
 
 export const NAV_LINKS = [

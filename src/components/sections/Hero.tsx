@@ -37,7 +37,7 @@ export function Hero() {
   }, [paused, nextSlide, reduced]);
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-24 pb-16">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-[calc(var(--navbar-height,4.25rem)+2.5rem)] pb-16">
       {/* Floating orbs */}
       <div
         className="absolute top-20 left-[10%] w-72 h-72 rounded-full bg-accent/10 blur-3xl animate-float pointer-events-none"
