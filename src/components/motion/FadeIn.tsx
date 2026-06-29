@@ -1,6 +1,9 @@
-import { motion, useReducedMotion } from "framer-motion";
+import { useRef } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { EASE_OUT, fadeUp } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+
+const VIEWPORT = { once: true, margin: "-60px 0px -60px 0px", amount: 0.15 } as const;
 
 type FadeInProps = {
   children: React.ReactNode;
@@ -25,15 +28,18 @@ export function FadeIn({
   direction = "up",
   once = true,
 }: FadeInProps) {
+  const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
+  const isInView = useInView(ref, { ...VIEWPORT, once });
   const offset = directionOffset[direction];
+  const visible = reduced || isInView;
 
   return (
     <motion.div
+      ref={ref}
       className={className}
       initial={reduced ? { opacity: 0 } : { opacity: 0, ...offset }}
-      whileInView={{ opacity: 1, x: 0, y: 0 }}
-      viewport={{ once, margin: "-80px" }}
+      animate={visible ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, ...offset }}
       transition={{ duration: reduced ? 0.2 : 0.6, ease: EASE_OUT, delay }}
     >
       {children}
@@ -48,12 +54,16 @@ export function FadeInStagger({
   children: React.ReactNode;
   className?: string;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
+  const isInView = useInView(ref, VIEWPORT);
+
   return (
     <motion.div
+      ref={ref}
       className={className}
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-80px" }}
+      animate={reduced || isInView ? "visible" : "hidden"}
       variants={{
         hidden: {},
         visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },

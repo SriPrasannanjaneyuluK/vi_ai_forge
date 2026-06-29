@@ -1,44 +1,56 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { ACADEMY, LATEST_COURSE } from "@/lib/constants";
+import { useCourses } from "@/context/CoursesContext";
+import { ACADEMY, HERO_FEATURED_COURSE, SECTIONS } from "@/lib/constants";
 import { EASE_OUT } from "@/lib/motion";
 import { scrollToSection } from "@/lib/utils";
 import { TextReveal } from "@/components/motion/TextReveal";
 import { MagneticButton } from "@/components/motion/MagneticButton";
+import type { LatestCourse } from "@/types/site";
 
 const SLIDE_DURATION = 6000;
+const SLIDE_COUNT = 2;
+const hero = SECTIONS.hero;
 
 export function Hero() {
+  const { latestCourse } = useCourses();
+
+  const featuredCourse = useMemo<LatestCourse>(() => {
+    if (latestCourse?.title?.trim()) return latestCourse;
+    return { ...HERO_FEATURED_COURSE, stack: [...HERO_FEATURED_COURSE.stack] };
+  }, [latestCourse]);
+
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
   const [progress, setProgress] = useState(0);
   const reduced = useReducedMotion();
 
-  const nextSlide = useCallback(() => {
-    setSlide((s) => (s + 1) % 2);
+  useEffect(() => {
     setProgress(0);
-  }, []);
+  }, [slide]);
 
   useEffect(() => {
     if (paused || reduced) return;
 
+    const started = performance.now();
+    const tickMs = 50;
+
     const interval = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) {
-          nextSlide();
-          return 0;
-        }
-        return p + 100 / (SLIDE_DURATION / 50);
-      });
-    }, 50);
+      const elapsed = performance.now() - started;
+      const pct = Math.min((elapsed / SLIDE_DURATION) * 100, 100);
+      setProgress(pct);
+
+      if (pct >= 100) {
+        setSlide((current) => (current + 1) % SLIDE_COUNT);
+      }
+    }, tickMs);
 
     return () => clearInterval(interval);
-  }, [paused, nextSlide, reduced]);
+  }, [paused, reduced, slide]);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-[calc(var(--navbar-height,4.25rem)+2.5rem)] pb-16">
-      {/* Floating orbs */}
       <div
         className="absolute top-20 left-[10%] w-72 h-72 rounded-full bg-accent/10 blur-3xl animate-float pointer-events-none"
         aria-hidden
@@ -70,7 +82,7 @@ export function Hero() {
                 className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-1.5 text-sm font-medium text-accent mb-8"
               >
                 <Sparkles size={14} />
-                Your learning playground
+                {hero.eyebrow}
               </motion.div>
 
               <motion.h1
@@ -108,14 +120,11 @@ export function Hero() {
                   variant="primary"
                   onClick={() => scrollToSection("#courses")}
                 >
-                  Explore the Playground
+                  {hero.browseCoursesLabel}
                   <ArrowRight size={16} />
                 </MagneticButton>
-                <MagneticButton
-                  variant="secondary"
-                  onClick={() => setSlide(1)}
-                >
-                  View Latest Course
+                <MagneticButton variant="secondary" onClick={() => setSlide(1)}>
+                  {hero.viewLatestCourseLabel}
                 </MagneticButton>
               </motion.div>
             </motion.div>
@@ -129,33 +138,35 @@ export function Hero() {
               className="max-w-3xl mx-auto text-center"
             >
               <span className="inline-block text-sm font-semibold text-accent-secondary uppercase tracking-widest mb-4">
-                Latest Course
+                {hero.latestCourseLabel}
               </span>
 
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground tracking-tight">
-                {LATEST_COURSE.title}
+                {featuredCourse.title}
               </h2>
 
               <p className="mt-6 text-lg text-muted leading-relaxed">
-                {LATEST_COURSE.description}
+                {featuredCourse.description}
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-                {LATEST_COURSE.stack.map((tech) => (
-                  <span
-                    key={tech}
-                    className="rounded-full bg-white border border-border px-4 py-1.5 text-sm font-medium text-foreground shadow-sm"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
+              {featuredCourse.stack.length > 0 && (
+                <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                  {featuredCourse.stack.map((tech) => (
+                    <span
+                      key={tech}
+                      className="rounded-full bg-white border border-border px-4 py-1.5 text-sm font-medium text-foreground shadow-sm"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <div className="mt-6 flex items-center justify-center gap-4 text-sm text-muted">
                 <span className="rounded-full bg-accent/10 px-3 py-1 text-accent font-medium">
-                  {LATEST_COURSE.level}
+                  {featuredCourse.level}
                 </span>
-                <span>{LATEST_COURSE.duration}</span>
+                <span>{featuredCourse.duration}</span>
               </div>
 
               <div className="mt-10">
@@ -163,7 +174,7 @@ export function Hero() {
                   variant="primary"
                   onClick={() => scrollToSection("#courses")}
                 >
-                  Jump In
+                  {hero.viewCourseDetailsLabel}
                   <ArrowRight size={16} />
                 </MagneticButton>
               </div>
@@ -171,15 +182,11 @@ export function Hero() {
           )}
         </AnimatePresence>
 
-        {/* Slide indicators */}
         <div className="mt-16 flex items-center justify-center gap-3">
-          {[0, 1].map((i) => (
+          {Array.from({ length: SLIDE_COUNT }, (_, i) => (
             <button
               key={i}
-              onClick={() => {
-                setSlide(i);
-                setProgress(0);
-              }}
+              onClick={() => setSlide(i)}
               className="group relative w-12 h-1.5 rounded-full bg-border overflow-hidden"
               aria-label={`Go to slide ${i + 1}`}
             >

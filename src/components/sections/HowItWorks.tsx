@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { HOW_IT_WORKS } from "@/lib/constants";
+import { LEARNING_STEPS, SECTIONS } from "@/lib/constants";
 import { EASE_OUT } from "@/lib/motion";
 import {
   FadeInStagger,
@@ -8,19 +8,21 @@ import {
 } from "@/components/motion/FadeIn";
 
 export function HowItWorks() {
+  const section = SECTIONS.learnings;
+
   return (
-    <section id="how" className="py-24 lg:py-32 bg-white">
+    <section id="learnings" className="py-24 lg:py-32 bg-white">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeading
-          eyebrow="How It Works"
-          title="From curious to confident"
-          subtitle="A clear path from picking a track to shipping your first production project."
+          eyebrow={section.eyebrow}
+          title={section.title}
+          subtitle={section.subtitle}
         />
 
         <FadeInStagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {HOW_IT_WORKS.map((step, i) => (
+          {LEARNING_STEPS.map((step, i) => (
             <FadeInItem key={step.step} className="relative">
-              {i < HOW_IT_WORKS.length - 1 && (
+              {i < LEARNING_STEPS.length - 1 && (
                 <div
                   className="hidden lg:block absolute top-8 left-[calc(50%+2rem)] w-[calc(100%-4rem)] h-px bg-gradient-to-r from-accent/40 to-transparent"
                   aria-hidden

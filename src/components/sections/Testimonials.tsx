@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, Quote } from "lucide-react";
-import { TESTIMONIALS } from "@/lib/constants";
+import { SECTIONS, TESTIMONIALS } from "@/lib/constants";
 import { EASE_OUT } from "@/lib/motion";
 import { SectionHeading } from "@/components/motion/FadeIn";
 
 export function Testimonials() {
+  const section = SECTIONS.testimonials;
   const [current, setCurrent] = useState(0);
 
-  const next = () => setCurrent((c) => (c + 1) % TESTIMONIALS.length);
+  const next = () =>
+    setCurrent((c) => (c + 1) % TESTIMONIALS.length);
   const prev = () =>
     setCurrent((c) => (c - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
 
@@ -18,9 +20,9 @@ export function Testimonials() {
     <section className="py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <SectionHeading
-          eyebrow="Stories"
-          title="From the playground"
-          subtitle="Real learners, real growth — hear from people who forged their path with us."
+          eyebrow={section.eyebrow}
+          title={section.title}
+          subtitle={section.subtitle}
         />
 
         <div className="relative max-w-3xl mx-auto">
@@ -44,38 +46,40 @@ export function Testimonials() {
             </motion.div>
           </AnimatePresence>
 
-          <div className="flex items-center justify-center gap-4 mt-8">
-            <button
-              onClick={prev}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-accent/10 hover:border-accent/30 transition-colors"
-              aria-label="Previous testimonial"
-            >
-              <ChevronLeft size={18} />
-            </button>
+          {TESTIMONIALS.length > 1 && (
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <button
+                onClick={prev}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-accent/10 hover:border-accent/30 transition-colors"
+                aria-label="Previous testimonial"
+              >
+                <ChevronLeft size={18} />
+              </button>
 
-            <div className="flex gap-2">
-              {TESTIMONIALS.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrent(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    i === current
-                      ? "w-8 bg-accent"
-                      : "w-2 bg-border hover:bg-muted"
-                  }`}
-                  aria-label={`Go to testimonial ${i + 1}`}
-                />
-              ))}
+              <div className="flex gap-2">
+                {TESTIMONIALS.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrent(i)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      i === current
+                        ? "w-8 bg-accent"
+                        : "w-2 bg-border hover:bg-muted"
+                    }`}
+                    aria-label={`Go to testimonial ${i + 1}`}
+                  />
+                ))}
+              </div>
+
+              <button
+                onClick={next}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-accent/10 hover:border-accent/30 transition-colors"
+                aria-label="Next testimonial"
+              >
+                <ChevronRight size={18} />
+              </button>
             </div>
-
-            <button
-              onClick={next}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-border hover:bg-accent/10 hover:border-accent/30 transition-colors"
-              aria-label="Next testimonial"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
+          )}
         </div>
       </div>
     </section>
