@@ -9,6 +9,7 @@ type MagneticButtonProps = {
   onClick?: () => void;
   href?: string;
   type?: "button" | "submit" | "reset";
+  disabled?: boolean;
 };
 
 export function MagneticButton({
@@ -18,6 +19,7 @@ export function MagneticButton({
   onClick,
   href,
   type = "button",
+  disabled = false,
 }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
@@ -32,7 +34,8 @@ export function MagneticButton({
   };
 
   const baseClass = cn(
-    "relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-colors cursor-pointer",
+    "relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-colors",
+    disabled ? "opacity-60 cursor-not-allowed" : "cursor-pointer",
     variants[variant],
     className
   );
@@ -71,7 +74,7 @@ export function MagneticButton({
   }
 
   return motionWrapper(
-    <button type={type} onClick={onClick} className={baseClass}>
+    <button type={type} onClick={onClick} className={baseClass} disabled={disabled}>
       {children}
     </button>
   );

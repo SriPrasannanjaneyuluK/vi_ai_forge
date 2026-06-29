@@ -1,0 +1,34 @@
+import { GraduationCap } from "lucide-react";
+import { MY_LEARNING_LABEL } from "@/lib/constants";
+import { usePortalAuth } from "@/context/PortalAuthContext";
+import { PageCard } from "@/components/ui/PageCard";
+import { PageHeader } from "@/components/ui/PageHeader";
+
+export function StudentDashboard() {
+  const { user } = usePortalAuth();
+
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title={MY_LEARNING_LABEL}
+        subtitle={`Welcome back${user?.fullName ? `, ${user.fullName}` : ""}`}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <PageCard>
+          <GraduationCap className="text-accent mb-3" size={24} />
+          <h2 className="font-semibold text-foreground">My courses</h2>
+          <p className="text-sm text-muted mt-2">
+            Enrolled courses and progress will appear here once you join a program.
+          </p>
+        </PageCard>
+        <PageCard dashed>
+          <p className="text-sm font-medium text-foreground">Coming soon</p>
+          <p className="text-sm text-muted mt-2">
+            Assignments, certificates, and learning paths.
+          </p>
+        </PageCard>
+      </div>
+    </div>
+  );
+}

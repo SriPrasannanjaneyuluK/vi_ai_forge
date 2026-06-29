@@ -1,4 +1,4 @@
-import { ACADEMY, NAV_LINKS, SOCIAL_LINKS } from "@/lib/constants";
+import { ACADEMY, FOOTER, NAV_LINKS, SOCIAL_LINKS } from "@/lib/constants";
 import { Logo } from "@/components/layout/Logo";
 
 export function Footer() {
@@ -11,8 +11,7 @@ export function Footer() {
           <div className="md:col-span-2">
             <Logo size="lg" />
             <p className="mt-4 text-muted max-w-sm leading-relaxed">
-              {ACADEMY.tagline}. A playground for learning new technologies,
-              building production-grade skills, and contributing real projects.
+              {ACADEMY.tagline}. {FOOTER.blurb}
             </p>
           </div>
 
@@ -24,21 +23,13 @@ export function Footer() {
               {NAV_LINKS.map((link) => (
                 <li key={link.href}>
                   <a
-                    href={link.href}
+                    href={link.href === "/" ? "/" : link.href}
                     className="text-muted hover:text-accent transition-colors text-sm"
                   >
                     {link.label}
                   </a>
                 </li>
               ))}
-              <li>
-                <a
-                  href="#how"
-                  className="text-muted hover:text-accent transition-colors text-sm"
-                >
-                  How It Works
-                </a>
-              </li>
             </ul>
           </div>
 

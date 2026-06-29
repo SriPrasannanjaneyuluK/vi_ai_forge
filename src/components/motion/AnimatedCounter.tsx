@@ -10,12 +10,13 @@ type AnimatedCounterProps = {
 
 export function AnimatedCounter({ value, suffix = "", label }: AnimatedCounterProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-50px" });
+  const isInView = useInView(ref, { once: true, margin: "-50px", amount: 0.2 });
   const reduced = useReducedMotion();
   const [count, setCount] = useState(reduced ? value : 0);
+  const visible = reduced || isInView;
 
   useEffect(() => {
-    if (!isInView) return;
+    if (!visible) return;
     if (reduced) {
       setCount(value);
       return;
@@ -34,15 +35,14 @@ export function AnimatedCounter({ value, suffix = "", label }: AnimatedCounterPr
     };
 
     requestAnimationFrame(tick);
-  }, [isInView, value, reduced]);
+  }, [visible, value, reduced]);
 
   return (
     <motion.div
       ref={ref}
       className="text-center"
       initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
+      animate={visible ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
       transition={{ duration: 0.5, ease: EASE_OUT }}
     >
       <div className="text-4xl sm:text-5xl font-bold gradient-text">

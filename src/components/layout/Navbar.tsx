@@ -1,51 +1,82 @@
 import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
-import { NAV_LINKS } from "@/lib/constants";
-import { EASE_OUT, slideDown } from "@/lib/motion";
+import { Link, useLocation } from "react-router-dom";
+import { EASE_OUT } from "@/lib/motion";
 import { cn, scrollToSection } from "@/lib/utils";
-import { MagneticButton } from "@/components/motion/MagneticButton";
 import { Logo } from "@/components/layout/Logo";
+import {
+  AuthNavActions,
+  CenterNavLinks,
+  MobileAuthNav,
+  type NavKey,
+} from "@/components/layout/SiteNavLinks";
+import { MY_LEARNING_PATH } from "@/lib/constants";
+import { usePortalAuth } from "@/context/PortalAuthContext";
 
-const SECTION_IDS = ["courses", "practice", "community", "contact"];
+const SECTION_IDS = ["courses", "contact"] as const;
+const SCROLL_LOCK_MS = 1100;
 
+/** Single site-wide navbar — same size and layout on every page */
 export function Navbar() {
-  const headerRef = useRef<HTMLElement>(null);
-  const logoRef = useRef<HTMLImageElement>(null);
+  const { pathname } = useLocation();
+  const onHomePage = pathname === "/";
+
+  const { user, loading, isStudent, isTeacher } = usePortalAuth();
+  const isLoggedIn = !loading && Boolean(user && (isStudent || isTeacher));
+
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("");
-  const [loginToast, setLoginToast] = useState(false);
+  const [activeNav, setActiveNav] = useState<NavKey | null>("home");
+  const navLockUntil = useRef(0);
+
+  const isNavLocked = () => Date.now() < navLockUntil.current;
+
+  const lockNav = (key: NavKey, ms = SCROLL_LOCK_MS) => {
+    navLockUntil.current = Date.now() + ms;
+    setActiveNav(key);
+  };
 
   useEffect(() => {
-    const logo = logoRef.current;
-    const header = headerRef.current;
-    if (!logo || !header) return;
+    setMobileOpen(false);
+  }, [pathname]);
 
-    const syncNavbarHeight = () => {
-      const height = Math.round(logo.getBoundingClientRect().height);
-      header.style.height = `${height}px`;
-      document.documentElement.style.setProperty(
-        "--navbar-height",
-        `${height}px`
-      );
+  useEffect(() => {
+    if (pathname === MY_LEARNING_PATH) {
+      navLockUntil.current = 0;
+      setActiveNav("my-learning");
+      return;
+    }
+
+    if (onHomePage) {
+      if (window.scrollY < 120) {
+        setActiveNav("home");
+      }
+      return;
+    }
+
+    setActiveNav(null);
+  }, [pathname, onHomePage]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      setScrolled(window.scrollY > 20);
+
+      if (!onHomePage || isNavLocked()) return;
+
+      if (window.scrollY < 120) {
+        setActiveNav("home");
+      }
     };
 
-    syncNavbarHeight();
-
-    const observer = new ResizeObserver(syncNavbarHeight);
-    observer.observe(logo);
-
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [onHomePage]);
 
   useEffect(() => {
+    if (!onHomePage) return;
+
     const observers: IntersectionObserver[] = [];
 
     SECTION_IDS.forEach((id) => {
@@ -54,7 +85,8 @@ export function Navbar() {
 
       const observer = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) setActiveSection(id);
+          if (!entry.isIntersecting || isNavLocked()) return;
+          setActiveNav(id);
         },
         { rootMargin: "-40% 0px -50% 0px" }
       );
@@ -64,93 +96,64 @@ export function Navbar() {
     });
 
     return () => observers.forEach((o) => o.disconnect());
-  }, []);
+  }, [onHomePage]);
 
   const handleNavClick = (href: string) => {
+    const id = href.replace("#", "");
+    lockNav(id === "courses" ? "courses" : "contact");
     scrollToSection(href);
     setMobileOpen(false);
   };
 
-  const handleLogin = () => {
-    setLoginToast(true);
+  const handleHomeClick = () => {
+    lockNav("home");
     setMobileOpen(false);
-    setTimeout(() => setLoginToast(false), 3000);
   };
+
+  const handleMyLearningClick = () => {
+    lockNav("my-learning", 500);
+    setMobileOpen(false);
+  };
+
+  const closeMobile = () => setMobileOpen(false);
 
   return (
     <>
       <motion.header
-        ref={headerRef}
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 bg-white transition-shadow duration-300",
-          scrolled ? "shadow-md" : ""
+          "fixed top-0 left-0 right-0 z-50 h-[var(--navbar-height)] bg-white transition-shadow duration-300",
+          scrolled ? "shadow-md shadow-foreground/5" : ""
         )}
         style={{
           boxShadow: scrolled
             ? undefined
-            : "inset 0 -1px 0 0 rgb(226 232 240 / 0.6)",
+            : "inset 0 -1px 0 0 rgb(203 213 225 / 0.85)",
         }}
-        initial={{ y: -80, opacity: 0 }}
+        initial={{ y: -24, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.7, ease: EASE_OUT, delay: 0.1 }}
+        transition={{ duration: 0.55, ease: EASE_OUT }}
       >
-        <nav className="mx-auto flex h-full max-w-7xl items-center justify-between px-6 lg:px-8">
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: "smooth" });
-            }}
-            className="flex h-full shrink-0 items-center leading-[0]"
-          >
-            <Logo ref={logoRef} size="nav" />
-          </a>
+        <nav className="mx-auto grid h-full max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-6 lg:px-8">
+          <Link to="/" className="flex h-full shrink-0 items-center leading-[0]">
+            <Logo size="nav" className="max-h-[calc(var(--navbar-height)-0.25rem)]" />
+          </Link>
 
-          <div className="hidden lg:flex items-center gap-1">
-            {NAV_LINKS.map((link) => {
-              const sectionId = link.href.replace("#", "");
-              const isActive = activeSection === sectionId;
-
-              return (
-                <button
-                  key={link.href}
-                  onClick={() => handleNavClick(link.href)}
-                  className={cn(
-                    "relative px-4 py-2 text-sm font-medium transition-colors",
-                    isActive ? "text-accent" : "text-muted hover:text-foreground"
-                  )}
-                >
-                  {link.label}
-                  {isActive && (
-                    <motion.span
-                      layoutId="nav-underline"
-                      className="absolute bottom-0 left-4 right-4 h-0.5 bg-accent rounded-full"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                </button>
-              );
-            })}
+          <div className="hidden lg:flex items-center justify-center">
+            <CenterNavLinks
+              activeNav={activeNav}
+              onSectionClick={onHomePage ? handleNavClick : undefined}
+              onHomeClick={handleHomeClick}
+              onMyLearningClick={handleMyLearningClick}
+            />
           </div>
 
-          <div className="hidden lg:flex items-center gap-3">
-            <button
-              onClick={handleLogin}
-              className="px-4 py-2 text-sm font-medium text-muted hover:text-foreground transition-colors"
-            >
-              Login
-            </button>
-            <MagneticButton
-              variant="primary"
-              className="!py-2 !text-xs sm:!text-sm"
-              onClick={() => handleNavClick("#courses")}
-            >
-              Start Building
-            </MagneticButton>
+          <div className="hidden lg:flex">
+            <AuthNavActions loading={loading} isLoggedIn={isLoggedIn} />
           </div>
 
           <button
-            className="lg:hidden p-2 text-foreground"
+            type="button"
+            className="lg:hidden justify-self-end p-2 text-foreground"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
           >
@@ -162,60 +165,27 @@ export function Navbar() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            className="fixed inset-0 z-40 bg-white/95 backdrop-blur-lg lg:hidden"
+            className="fixed inset-0 z-40 bg-white/95 backdrop-blur-lg lg:hidden pt-[var(--navbar-height)]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="flex flex-col items-center justify-center h-full gap-6">
-              {NAV_LINKS.map((link, i) => (
-                <motion.button
-                  key={link.href}
-                  onClick={() => handleNavClick(link.href)}
-                  className="text-2xl font-semibold text-foreground"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.08, ease: EASE_OUT }}
-                >
-                  {link.label}
-                </motion.button>
-              ))}
-              <motion.button
-                onClick={handleLogin}
-                className="text-lg text-muted"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.32, ease: EASE_OUT }}
-              >
-                Login
-              </motion.button>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, ease: EASE_OUT }}
-              >
-                <MagneticButton
-                  variant="primary"
-                  onClick={() => handleNavClick("#courses")}
-                >
-                  Start Building
-                </MagneticButton>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className="flex flex-col items-center justify-center h-[calc(100%-var(--navbar-height))] gap-8">
+              <CenterNavLinks
+                activeNav={activeNav}
+                onSectionClick={onHomePage ? handleNavClick : undefined}
+                onHomeClick={handleHomeClick}
+                onMyLearningClick={handleMyLearningClick}
+                onNavigate={closeMobile}
+                layout="vertical"
+              />
 
-      <AnimatePresence>
-        {loginToast && (
-          <motion.div
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-foreground text-white px-6 py-3 rounded-full text-sm font-medium shadow-xl"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            variants={slideDown}
-          >
-            Login coming soon — we&apos;re forging something great!
+              <MobileAuthNav
+                loading={loading}
+                isLoggedIn={isLoggedIn}
+                onNavigate={closeMobile}
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

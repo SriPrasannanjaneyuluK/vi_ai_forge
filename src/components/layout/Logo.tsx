@@ -1,5 +1,5 @@
 import { forwardRef } from "react";
-import { ACADEMY } from "@/lib/constants";
+import { STATIC_SITE } from "@/lib/staticSite";
 import { cn } from "@/lib/utils";
 
 const sizeClasses = {
@@ -22,8 +22,8 @@ export const Logo = forwardRef<HTMLImageElement, LogoProps>(function Logo(
   return (
     <img
       ref={ref}
-      src={ACADEMY.logo}
-      alt={ACADEMY.name}
+      src={STATIC_SITE.logo}
+      alt={STATIC_SITE.name}
       className={cn("block w-auto object-contain", sizeClasses[size], className)}
       draggable={false}
     />

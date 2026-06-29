@@ -1,55 +1,59 @@
-# VJ AI Forge
+# VJ AI Forge — User Portal
 
-An animated learning playground landing page for **VJ AI Forge** — where people learn software skills through courses, labs, mock tests, and community.
+Public marketing site + **student & teacher** portal (`academy.com` in production).
 
-Built with **React + Vite**, Tailwind CSS v4, and Framer Motion.
+| Route | Purpose |
+|-------|---------|
+| `/` | Public homepage (courses, learnings, contact) |
+| `/login` | Student & teacher sign-in |
+| `/dashboard` | Role-based dashboard after login |
 
-## Quick Start
+Admins use the **separate** app in `vi_ai_forge_admin` (`admin.academy.com` / `http://localhost:5174`).
+
+## Edit website copy (no deploy to admin)
+
+All marketing text lives in **`src/lib/constants.ts`** — academy name, nav labels, section headings, founder bio, team, testimonials, stats, CTA, and contact copy. Change that file and refresh the site.
+
+**From the API / database (admin-managed):**
+
+- Published **courses** catalog
+- **Featured course** on the homepage hero (when a course is published with “feature on homepage”)
+
+## Local development
+
+Run all three services:
 
 ```bash
-npm install
-npm run dev
+# Terminal 1 — API
+cd ../vi_ai_forge_api && npm run dev    # :3001
+
+# Terminal 2 — User portal (this app)
+npm install && npm run dev              # :5173
+
+# Terminal 3 — Admin portal
+cd ../vi_ai_forge_admin && npm run dev  # :5174
 ```
 
-Open [http://localhost:5173](http://localhost:5173).
+Copy `.env.example` to `.env`:
 
-## Build for Production
-
-```bash
-npm run build
-npm run preview
+```
+VITE_API_URL=http://localhost:3001
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
 ```
 
-## Customize Content
+## Architecture
 
-All editable copy lives in [`src/lib/constants.ts`](src/lib/constants.ts):
+```
+academy.com (vi_ai_forge)             →  Public site + student/teacher portal
+admin.academy.com (vi_ai_forge_admin) →  Courses + user access management
+              \________________________/
+                          |
+                  vi_ai_forge_api :3001
+                          |
+                       Supabase
+```
 
-- Academy name, tagline, and caption
-- Course list and latest course spotlight
-- Founder bio, experience, and team members
-- Stats, testimonials, and community posts
+## Tech stack
 
-## Add Images
-
-- **Founder photo:** Place `founder.jpg` in the `public/` folder and update the Founder section to use it.
-- **Team photos:** Add images to `public/team/` and reference them in `src/lib/constants.ts`.
-
-## Tech Stack
-
-- React 19
-- Vite 7
-- TypeScript
-- Tailwind CSS v4
-- Framer Motion
-- Lucide React icons
-
-## Deploy
-
-Build the `dist/` folder and deploy to Netlify, Vercel, GitHub Pages, or any static host.
-
-## Phase 2 (Coming Soon)
-
-- Real authentication (Login)
-- Community portal
-- Interactive labs backend
-- Waitlist API integration
+React 19 · Vite 7 · TypeScript · Tailwind CSS v4 · Framer Motion · Supabase Auth

@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafaf8;
-  --foreground: #0f172a;
-  --muted: #64748b;
-  --accent: #6366f1;
-  --accent-secondary: #14b8a6;
+  --background: #f4f4f1;
+  --foreground: #0a0f1a;
+  --muted: #475569;
+  --accent: #4f46e5;
+  --accent-secondary: #0d9488;
   --card: #ffffff;
-  --border: #e2e8f0;
+  --border: #cbd5e1;
   --font-plus-jakarta: "Plus Jakarta Sans", system-ui, sans-serif;
-  --navbar-height: 4.25rem;
+  --navbar-height: 5rem;
 }
 
 @theme inline {
@@ -46,12 +46,10 @@ body {
     scroll-behavior: auto;
   }
 
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  .animate-float,
+  .animate-float-delayed,
+  .animate-marquee {
+    animation: none !important;
   }
 }
 
@@ -93,7 +91,7 @@ body {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #6366f1 0%, #14b8a6 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #0d9488 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -112,7 +110,7 @@ body {
   background: linear-gradient(
     135deg,
     transparent 40%,
-    rgba(99, 102, 241, 0.4) 50%,
+    rgba(79, 70, 229, 0.45) 50%,
     transparent 60%
   );
   -webkit-mask:
