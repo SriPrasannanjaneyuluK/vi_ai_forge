@@ -2,13 +2,22 @@ import {
   createContext,
   useContext,
   useEffect,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
-import { fetchAuthUser, portalForgotPassword, portalSignIn, portalSignUp, type PortalUser } from "@/lib/portalApi";
-import { ACCESS_REVOKED, INVALID_CREDENTIALS } from "@/lib/authMessages";
-import { isSupabaseConfigured, supabase } from "@/lib/supabase";
+import {
+  fetchAuthUser,
+  isApiConfigured,
+  portalForgotPassword,
+  portalLogout,
+  portalSignIn,
+  portalSignUp,
+  portalUpdateProfile,
+  refreshAccessToken,
+  setAccessToken,
+  type PortalUser,
+} from "@/lib/portalApi";
+import { ACCESS_REVOKED } from "@/lib/authMessages";
 
 function isPortalRole(role: PortalUser["role"]) {
   return role === "student" || role === "teacher" || role === "user";
@@ -38,9 +47,8 @@ const PortalAuthContext = createContext<PortalAuthContextValue | null>(null);
 
 export function PortalAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<PortalUser | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [accessToken, setAccessTokenState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const signInInProgress = useRef(false);
 
   const fetchProfile = async (token: string) => {
     const { user: profile } = await fetchAuthUser(token);
@@ -49,21 +57,24 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
 
   const applyPortalSession = async (token: string, profile: PortalUser) => {
     if (profile.accessRevoked) {
-      if (supabase) await supabase.auth.signOut();
-      setUser(null);
+      await portalLogout().catch(() => undefined);
       setAccessToken(null);
+      setAccessTokenState(null);
+      setUser(null);
       throw new Error(ACCESS_REVOKED);
     }
 
     if (!isPortalRole(profile.role)) {
-      if (supabase) await supabase.auth.signOut();
-      setUser(null);
+      await portalLogout().catch(() => undefined);
       setAccessToken(null);
+      setAccessTokenState(null);
+      setUser(null);
       return false;
     }
 
-    setUser(profile);
     setAccessToken(token);
+    setAccessTokenState(token);
+    setUser(profile);
     return true;
   };
 
@@ -72,74 +83,53 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
       const profile = await fetchProfile(token);
       await applyPortalSession(token, profile);
     } catch {
-      setUser(null);
       setAccessToken(null);
+      setAccessTokenState(null);
+      setUser(null);
     }
   };
 
   useEffect(() => {
-    const client = supabase;
-    if (!client) {
+    if (!isApiConfigured) {
       setLoading(false);
       return;
     }
 
     let cancelled = false;
 
-    client.auth.getSession().then(async ({ data }) => {
+    (async () => {
+      const token = await refreshAccessToken();
       if (cancelled) return;
-      const token = data.session?.access_token;
+
       if (!token) {
         setLoading(false);
         return;
       }
+
       await restoreSession(token);
       if (!cancelled) setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = client.auth.onAuthStateChange(async (_event, session) => {
-      if (signInInProgress.current) return;
-
-      const token = session?.access_token;
-      if (!token) {
-        setUser(null);
-        setAccessToken(null);
-        return;
-      }
-
-      await restoreSession(token);
-    });
+    })();
 
     return () => {
       cancelled = true;
-      subscription.unsubscribe();
     };
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    if (!supabase) throw new Error("Supabase is not configured");
+    if (!isApiConfigured) throw new Error("API is not configured");
 
-    signInInProgress.current = true;
-    try {
-      const { session, user: profile } = await portalSignIn(email, password, "public");
-
-      const { error } = await supabase.auth.setSession(session);
-      if (error) throw new Error(INVALID_CREDENTIALS);
-
-      setUser(profile);
-      setAccessToken(session.access_token);
-      return profile;
-    } finally {
-      signInInProgress.current = false;
-    }
+    const { access_token, user: profile } = await portalSignIn(email, password, "public");
+    setAccessToken(access_token);
+    setAccessTokenState(access_token);
+    setUser(profile);
+    return profile;
   };
 
   const signOut = async () => {
-    if (supabase) await supabase.auth.signOut();
-    setUser(null);
+    await portalLogout().catch(() => undefined);
     setAccessToken(null);
+    setAccessTokenState(null);
+    setUser(null);
   };
 
   const signUp = async ({
@@ -153,26 +143,19 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
     fullName: string;
     portalRole: PortalRole;
   }) => {
-    if (!supabase) throw new Error("Supabase is not configured");
+    if (!isApiConfigured) throw new Error("API is not configured");
 
-    signInInProgress.current = true;
-    try {
-      const { session, user: profile } = await portalSignUp({
-        email,
-        password,
-        fullName,
-        portalRole,
-      });
+    const { access_token, user: profile } = await portalSignUp({
+      email,
+      password,
+      fullName,
+      portalRole,
+    });
 
-      const { error } = await supabase.auth.setSession(session);
-      if (error) throw new Error(INVALID_CREDENTIALS);
-
-      setUser(profile);
-      setAccessToken(session.access_token);
-      return profile;
-    } finally {
-      signInInProgress.current = false;
-    }
+    setAccessToken(access_token);
+    setAccessTokenState(access_token);
+    setUser(profile);
+    return profile;
   };
 
   const resetPassword = async (email: string) => {
@@ -181,16 +164,11 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = async (fullName: string) => {
-    if (!supabase || !accessToken) {
+    if (!accessToken) {
       throw new Error("You must be signed in to update your profile.");
     }
 
-    const { error } = await supabase.auth.updateUser({
-      data: { full_name: fullName },
-    });
-    if (error) throw error;
-
-    const { user: profile } = await fetchAuthUser(accessToken);
+    const { user: profile } = await portalUpdateProfile(accessToken, fullName);
     setUser(profile);
   };
 
@@ -225,4 +203,4 @@ export function usePortalAuth() {
   return context;
 }
 
-export { isSupabaseConfigured };
+export { isApiConfigured };

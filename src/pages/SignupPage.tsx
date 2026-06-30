@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { GraduationCap, Loader2, UserPlus, Users } from "lucide-react";
 import {
   usePortalAuth,
-  isSupabaseConfigured,
+  isApiConfigured,
   type PortalRole,
 } from "@/context/PortalAuthContext";
 import { toSignUpError } from "@/lib/authMessages";
@@ -14,28 +14,17 @@ import {
 } from "@/lib/validation";
 import { btnPrimaryClass } from "@/components/layout/PageLayout";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { AuthAlert, PasswordInput, TextInput } from "@/components/auth/AuthFields";
+import {
+  AuthAlert,
+  PasswordInput,
+  RoleSelect,
+  TextInput,
+} from "@/components/auth/AuthFields";
 import { PasswordStrength } from "@/components/auth/PasswordStrength";
-import { cn } from "@/lib/utils";
 
-const ROLE_OPTIONS: {
-  value: PortalRole;
-  label: string;
-  description: string;
-  icon: typeof GraduationCap;
-}[] = [
-  {
-    value: "student",
-    label: "Student",
-    description: "Learn courses and track your progress",
-    icon: GraduationCap,
-  },
-  {
-    value: "teacher",
-    label: "Teacher",
-    description: "Manage classes and support learners",
-    icon: Users,
-  },
+const ROLE_OPTIONS = [
+  { value: "student" as const, label: "Student", icon: GraduationCap },
+  { value: "teacher" as const, label: "Teacher", icon: Users },
 ];
 
 export function SignupPage() {
@@ -99,8 +88,6 @@ export function SignupPage() {
 
   return (
     <AuthShell
-      title="Create your account"
-      subtitle="Join as a student or teacher and start your learning journey"
       footer={
         <>
           Already have an account?{" "}
@@ -110,41 +97,19 @@ export function SignupPage() {
         </>
       }
     >
-      {!isSupabaseConfigured && (
+      {!isApiConfigured && (
         <AuthAlert tone="info">
-          Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to vi_ai_forge/.env
+          Add VITE_API_URL to vi_ai_forge/.env
         </AuthAlert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
-          <span className="text-sm font-medium text-foreground">I am joining as</span>
-          <div className="mt-2 grid grid-cols-2 gap-3">
-            {ROLE_OPTIONS.map(({ value, label, description, icon: Icon }) => {
-              const selected = portalRole === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setPortalRole(value)}
-                  className={cn(
-                    "rounded-xl border p-3 text-left transition-all",
-                    selected
-                      ? "border-accent bg-accent/5 ring-2 ring-accent/20"
-                      : "border-border hover:border-accent/30"
-                  )}
-                >
-                  <Icon
-                    size={18}
-                    className={selected ? "text-accent" : "text-muted"}
-                  />
-                  <p className="mt-2 text-sm font-semibold text-foreground">{label}</p>
-                  <p className="mt-1 text-xs text-muted leading-snug">{description}</p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <RoleSelect
+          label="I am joining as"
+          value={portalRole}
+          options={ROLE_OPTIONS}
+          onChange={setPortalRole}
+        />
 
         <TextInput
           id="signup-name"
@@ -188,7 +153,7 @@ export function SignupPage() {
 
         <button
           type="submit"
-          disabled={submitting || !isSupabaseConfigured}
+          disabled={submitting || !isApiConfigured}
           className={`w-full ${btnPrimaryClass}`}
         >
           {submitting ? (

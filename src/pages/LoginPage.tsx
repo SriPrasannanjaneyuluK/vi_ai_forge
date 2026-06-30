@@ -3,13 +3,12 @@ import { Link, Navigate } from "react-router-dom";
 import { LogIn, Loader2 } from "lucide-react";
 import {
   usePortalAuth,
-  isSupabaseConfigured,
+  isApiConfigured,
 } from "@/context/PortalAuthContext";
 import { toSignInError } from "@/lib/authMessages";
 import { btnPrimaryClass } from "@/components/layout/PageLayout";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthAlert, PasswordInput, TextInput } from "@/components/auth/AuthFields";
-import { STATIC_SITE } from "@/lib/staticSite";
 
 export function LoginPage() {
   const { signIn, user, loading, isStudent, isTeacher } = usePortalAuth();
@@ -40,8 +39,6 @@ export function LoginPage() {
 
   return (
     <AuthShell
-      title="Welcome back"
-      subtitle={`Sign in to continue learning with ${STATIC_SITE.name}`}
       footer={
         <>
           New here?{" "}
@@ -51,13 +48,13 @@ export function LoginPage() {
         </>
       }
     >
-      {!isSupabaseConfigured && (
+      {!isApiConfigured && (
         <AuthAlert tone="info">
-          Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to vi_ai_forge/.env
+          Add VITE_API_URL to vi_ai_forge/.env
         </AuthAlert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <TextInput
           id="login-email"
           label="Email"
@@ -90,7 +87,7 @@ export function LoginPage() {
 
         <button
           type="submit"
-          disabled={submitting || !isSupabaseConfigured}
+          disabled={submitting || !isApiConfigured}
           className={`w-full ${btnPrimaryClass}`}
         >
           {submitting ? (

@@ -5,7 +5,7 @@ export function PasswordStrength({ password }: { password: string }) {
   if (!password) return null;
 
   return (
-    <ul className="mt-2 space-y-1">
+    <ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
       {PASSWORD_RULES.map(({ id, label, test }) => {
         const met = test(password);
         return (
