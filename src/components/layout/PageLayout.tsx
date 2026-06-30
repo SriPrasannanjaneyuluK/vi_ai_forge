@@ -19,7 +19,7 @@ type PageLayoutProps = {
 const widthClasses = {
   full: "max-w-7xl",
   narrow: "max-w-2xl",
-  auth: "max-w-md w-full",
+  auth: "max-w-lg w-full",
 } as const;
 
 /** Shared page shell — navbar offset, background, content width */

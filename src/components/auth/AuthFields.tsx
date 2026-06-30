@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useState, type ComponentType } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const fieldLabelClass = "text-sm font-medium text-foreground";
+const fieldInputClass =
+  "w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30";
 
 type PasswordInputProps = {
   id: string;
@@ -25,7 +29,7 @@ export function PasswordInput({
 
   return (
     <label className="block" htmlFor={id}>
-      <span className="text-sm font-medium text-foreground">{label}</span>
+      <span className={fieldLabelClass}>{label}</span>
       <div className="relative mt-1.5">
         <input
           id={id}
@@ -35,7 +39,7 @@ export function PasswordInput({
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="w-full rounded-xl border border-border bg-white px-4 py-2.5 pr-11 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30"
+          className={cn(fieldInputClass, "pr-11")}
         />
         <button
           type="button"
@@ -72,7 +76,7 @@ export function TextInput({
 }: TextInputProps) {
   return (
     <label className="block" htmlFor={id}>
-      <span className="text-sm font-medium text-foreground">{label}</span>
+      <span className={fieldLabelClass}>{label}</span>
       <input
         id={id}
         type={type}
@@ -81,12 +85,57 @@ export function TextInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        className={cn(
-          "mt-1.5 w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm",
-          "focus:outline-none focus:ring-2 focus:ring-accent/30"
-        )}
+        className={cn(fieldInputClass, "mt-1.5")}
       />
     </label>
+  );
+}
+
+type RoleOption<T extends string> = {
+  value: T;
+  label: string;
+  icon: ComponentType<{ size?: number; className?: string }>;
+};
+
+type RoleSelectProps<T extends string> = {
+  label: string;
+  value: T;
+  options: RoleOption<T>[];
+  onChange: (value: T) => void;
+};
+
+/** Segmented role picker — matches auth tab styling and input field rhythm */
+export function RoleSelect<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: RoleSelectProps<T>) {
+  return (
+    <div>
+      <span className={fieldLabelClass}>{label}</span>
+      <div className="mt-1.5 grid grid-cols-2 gap-1 rounded-xl bg-muted/20 p-1">
+        {options.map(({ value: optionValue, label: optionLabel, icon: Icon }) => {
+          const selected = value === optionValue;
+          return (
+            <button
+              key={optionValue}
+              type="button"
+              onClick={() => onChange(optionValue)}
+              className={cn(
+                "flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all",
+                selected
+                  ? "bg-white text-foreground shadow-sm"
+                  : "text-muted hover:text-foreground"
+              )}
+            >
+              <Icon size={16} className={selected ? "text-accent" : "text-muted"} />
+              {optionLabel}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Loader2, Mail } from "lucide-react";
 import {
   usePortalAuth,
-  isSupabaseConfigured,
+  isApiConfigured,
 } from "@/context/PortalAuthContext";
 import { ACCOUNT_NOT_FOUND, RESET_EMAIL_SENT } from "@/lib/authMessages";
 import { AuthAlert, TextInput } from "@/components/auth/AuthFields";
@@ -54,9 +54,9 @@ export function ForgotPasswordPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
-            {!isSupabaseConfigured && (
+            {!isApiConfigured && (
               <AuthAlert tone="info">
-                Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to vi_ai_forge/.env
+                Add VITE_API_URL to vi_ai_forge/.env
               </AuthAlert>
             )}
 
@@ -74,7 +74,7 @@ export function ForgotPasswordPage() {
 
             <button
               type="submit"
-              disabled={submitting || !isSupabaseConfigured}
+              disabled={submitting || !isApiConfigured}
               className={`w-full ${btnPrimaryClass}`}
             >
               {submitting ? (

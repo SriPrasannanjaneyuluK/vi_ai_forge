@@ -1,4 +1,9 @@
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+import {
+  apiFetch,
+  isApiConfigured,
+  refreshAccessToken,
+  setAccessToken,
+} from "@/lib/authSession";
 
 export type UserRole = "admin" | "teacher" | "student" | "user";
 
@@ -10,6 +15,8 @@ export interface PortalUser {
   accessRevoked?: boolean;
 }
 
+export { isApiConfigured };
+
 export function fetchAuthUser(token: string) {
   return request<{ user: PortalUser }>("/api/auth/me", token);
 }
@@ -20,7 +27,7 @@ export function portalSignIn(
   portal: "public" | "admin"
 ) {
   return requestWithoutAuth<{
-    session: { access_token: string; refresh_token: string };
+    access_token: string;
     user: PortalUser;
   }>("/api/auth/login", {
     method: "POST",
@@ -42,7 +49,7 @@ export function portalSignUp(input: {
   portalRole: "student" | "teacher";
 }) {
   return requestWithoutAuth<{
-    session: { access_token: string; refresh_token: string };
+    access_token: string;
     user: PortalUser;
   }>("/api/auth/signup", {
     method: "POST",
@@ -50,9 +57,25 @@ export function portalSignUp(input: {
   });
 }
 
+export function portalLogout() {
+  return requestWithoutAuth<{ ok: true }>("/api/auth/logout", {
+    method: "POST",
+  });
+}
+
+export function portalUpdateProfile(token: string, fullName: string) {
+  return request<{ user: PortalUser }>("/api/auth/me", token, {
+    method: "PATCH",
+    body: JSON.stringify({ fullName }),
+  });
+}
+
+export { refreshAccessToken, setAccessToken };
+
 async function requestWithoutAuth<T>(path: string, init: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
+  const response = await fetch(`${import.meta.env.VITE_API_URL ?? ""}${path}`, {
     ...init,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(init.headers ?? {}),
@@ -74,13 +97,22 @@ async function requestWithoutAuth<T>(path: string, init: RequestInit): Promise<T
   return response.json() as Promise<T>;
 }
 
-async function request<T>(path: string, token: string): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
+async function request<T>(
+  path: string,
+  token: string,
+  init?: RequestInit
+): Promise<T> {
+  const response = await apiFetch(
+    path,
+    {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...(init?.headers ?? {}),
+      },
     },
-  });
+    token
+  );
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
