@@ -13,8 +13,8 @@ export function Courses() {
   const hasCourses = courses.length > 0;
 
   return (
-    <section id="courses" className="py-24 lg:py-32 bg-white">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+    <section id="courses" className="py-20 sm:py-24 lg:py-32 bg-white">
+      <div className="mx-auto max-w-7xl safe-px lg:px-8">
         <SectionHeading
           eyebrow={section.eyebrow}
           title={section.title}

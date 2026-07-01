@@ -3,7 +3,7 @@ import { motion, useInView, useReducedMotion } from "framer-motion";
 import { EASE_OUT, fadeUp } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-const VIEWPORT = { once: true, margin: "-60px 0px -60px 0px", amount: 0.15 } as const;
+const VIEWPORT = { once: true, margin: "-40px 0px -40px 0px", amount: 0.12 } as const;
 
 type FadeInProps = {
   children: React.ReactNode;
@@ -40,7 +40,7 @@ export function FadeIn({
       className={className}
       initial={reduced ? { opacity: 0 } : { opacity: 0, ...offset }}
       animate={visible ? { opacity: 1, x: 0, y: 0 } : { opacity: 0, ...offset }}
-      transition={{ duration: reduced ? 0.2 : 0.6, ease: EASE_OUT, delay }}
+      transition={{ duration: reduced ? 0.15 : 0.5, ease: EASE_OUT, delay }}
     >
       {children}
     </motion.div>
@@ -106,13 +106,13 @@ export function SectionHeading({
   className?: string;
 }) {
   return (
-    <FadeIn className={cn("text-center max-w-2xl mx-auto mb-16", className)}>
+    <FadeIn className={cn("text-center max-w-2xl mx-auto mb-10 sm:mb-16 px-2", className)}>
       {eyebrow && (
         <span className="inline-block text-sm font-semibold text-accent uppercase tracking-widest mb-3">
           {eyebrow}
         </span>
       )}
-      <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+      <h2 className="text-2xl sm:text-4xl font-bold text-foreground tracking-tight">
         {title}
       </h2>
       {subtitle && (

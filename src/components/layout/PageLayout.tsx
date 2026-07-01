@@ -1,13 +1,13 @@
 import { cn } from "@/lib/utils";
 
-export const pageContainerClass = "mx-auto px-6 lg:px-8";
+export const pageContainerClass = "mx-auto safe-px lg:px-8";
 
 export const pageTitleClass = "text-3xl font-bold text-foreground tracking-tight";
 
 export const pageSubtitleClass = "mt-2 text-base text-muted";
 
 export const btnPrimaryClass =
-  "inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-white shadow-sm shadow-accent/25 hover:opacity-90 disabled:opacity-60 transition-all duration-200";
+  "inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 sm:py-3 text-sm font-semibold text-white shadow-sm shadow-accent/25 hover:opacity-90 active:scale-[0.98] disabled:opacity-60 transition-all duration-200 min-h-[2.75rem]";
 
 type PageLayoutProps = {
   children: React.ReactNode;
@@ -33,7 +33,7 @@ export function PageLayout({
       <main
         className={cn(
           pageContainerClass,
-          "pt-[calc(var(--navbar-height)+2.5rem)] pb-16 lg:pb-12",
+          "pt-[calc(var(--navbar-height)+var(--safe-top)+1.5rem)] pb-16 safe-pb lg:pb-12",
           widthClasses[width],
           className
         )}
