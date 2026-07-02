@@ -24,16 +24,19 @@ const AUTH_META = {
 type AuthShellProps = {
   children: React.ReactNode;
   footer?: React.ReactNode;
+  title?: string;
+  subtitle?: string;
 };
 
 /** Auth pages — shared shell, tabs, and field layout for sign-in and sign-up */
-export function AuthShell({ children, footer }: AuthShellProps) {
-  const { pathname } = useLocation();
+export function AuthShell({ children, footer, title, subtitle }: AuthShellProps) {
+  const { pathname, search } = useLocation();
   const meta = AUTH_META[pathname as keyof typeof AUTH_META] ?? AUTH_META["/login"];
+  const query = search;
 
   return (
     <PageLayout width="auth">
-      <PageHeader title={meta.title} subtitle={meta.subtitle} />
+      <PageHeader title={title ?? meta.title} subtitle={subtitle ?? meta.subtitle} />
 
       <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-muted/20 p-1">
         {TABS.map((tab) => {
@@ -41,7 +44,7 @@ export function AuthShell({ children, footer }: AuthShellProps) {
           return (
             <Link
               key={tab.href}
-              to={tab.href}
+              to={`${tab.href}${query}`}
               className={cn(
                 "rounded-lg py-2.5 text-center text-sm font-medium transition-all",
                 active

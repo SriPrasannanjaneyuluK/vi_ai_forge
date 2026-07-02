@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { GraduationCap, Loader2, UserPlus, Users } from "lucide-react";
 import {
   usePortalAuth,
@@ -11,6 +11,7 @@ import {
   validateEmail,
   validateFullName,
   validatePassword,
+  validatePhone,
 } from "@/lib/validation";
 import { btnPrimaryClass } from "@/components/layout/PageLayout";
 import { AuthShell } from "@/components/auth/AuthShell";
@@ -27,21 +28,40 @@ const ROLE_OPTIONS = [
   { value: "teacher" as const, label: "Teacher", icon: Users },
 ];
 
+function isSafeRedirect(path: string) {
+  return path.startsWith("/") && !path.startsWith("//");
+}
+
 export function SignupPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signUp, user, loading, isStudent, isTeacher } = usePortalAuth();
+
+  const redirectTo = searchParams.get("redirect");
+  const presetRole = searchParams.get("role");
+  const fromCourse = presetRole === "student" || Boolean(redirectTo?.includes("/courses/"));
+  const hideRoleSelect = fromCourse;
+
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [portalRole, setPortalRole] = useState<PortalRole>("student");
+  const [portalRole, setPortalRole] = useState<PortalRole>(
+    presetRole === "teacher" ? "teacher" : "student"
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const postAuthPath = useMemo(() => {
+    if (redirectTo && isSafeRedirect(redirectTo)) return redirectTo;
+    return "/dashboard";
+  }, [redirectTo]);
 
   const hasPortalAccess = Boolean(user && (isStudent || isTeacher));
 
   if (!loading && hasPortalAccess) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={postAuthPath} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,6 +83,13 @@ export function SignupPage() {
       return;
     }
 
+    const phoneError = validatePhone(phone);
+    if (phoneError) {
+      setError(phoneError);
+      setSubmitting(false);
+      return;
+    }
+
     const passwordError = validatePassword(password);
     if (passwordError) {
       setError(passwordError);
@@ -77,8 +104,14 @@ export function SignupPage() {
     }
 
     try {
-      await signUp({ email, password, fullName, portalRole });
-      navigate("/dashboard", { replace: true });
+      await signUp({
+        email,
+        password,
+        fullName,
+        phone,
+        portalRole: hideRoleSelect ? "student" : portalRole,
+      });
+      navigate(postAuthPath, { replace: true });
     } catch (err) {
       setError(toSignUpError(err));
     } finally {
@@ -86,12 +119,22 @@ export function SignupPage() {
     }
   };
 
+  const loginHref = redirectTo
+    ? `/login?redirect=${encodeURIComponent(redirectTo)}`
+    : "/login";
+
   return (
     <AuthShell
+      title={fromCourse ? "Book your free demo" : undefined}
+      subtitle={
+        fromCourse
+          ? "Create a student account in under a minute — we'll bring you right back to your course."
+          : undefined
+      }
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/login" className="font-medium text-accent hover:underline">
+          <Link to={loginHref} className="font-medium text-accent hover:underline">
             Sign in
           </Link>
         </>
@@ -104,12 +147,14 @@ export function SignupPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <RoleSelect
-          label="I am joining as"
-          value={portalRole}
-          options={ROLE_OPTIONS}
-          onChange={setPortalRole}
-        />
+        {!hideRoleSelect && (
+          <RoleSelect
+            label="I am joining as"
+            value={portalRole}
+            options={ROLE_OPTIONS}
+            onChange={setPortalRole}
+          />
+        )}
 
         <TextInput
           id="signup-name"
@@ -122,12 +167,22 @@ export function SignupPage() {
 
         <TextInput
           id="signup-email"
-          label="Email"
+          label="Email address"
           type="email"
           value={email}
           onChange={setEmail}
           placeholder="you@example.com"
           autoComplete="email"
+        />
+
+        <TextInput
+          id="signup-phone"
+          label="Mobile number"
+          type="tel"
+          value={phone}
+          onChange={setPhone}
+          placeholder="10-digit mobile number"
+          autoComplete="tel"
         />
 
         <div>
@@ -164,7 +219,7 @@ export function SignupPage() {
           ) : (
             <>
               <UserPlus size={16} />
-              Create account
+              {fromCourse ? "Create account & continue" : "Create account"}
             </>
           )}
         </button>

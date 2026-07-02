@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { LogIn, Loader2 } from "lucide-react";
 import {
   usePortalAuth,
@@ -10,17 +10,29 @@ import { btnPrimaryClass } from "@/components/layout/PageLayout";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthAlert, PasswordInput, TextInput } from "@/components/auth/AuthFields";
 
+function isSafeRedirect(path: string) {
+  return path.startsWith("/") && !path.startsWith("//");
+}
+
 export function LoginPage() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signIn, user, loading, isStudent, isTeacher } = usePortalAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const redirectTo = searchParams.get("redirect");
+  const postAuthPath = useMemo(() => {
+    if (redirectTo && isSafeRedirect(redirectTo)) return redirectTo;
+    return "/dashboard";
+  }, [redirectTo]);
+
   const hasPortalAccess = Boolean(user && (isStudent || isTeacher));
 
   if (!loading && hasPortalAccess) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={postAuthPath} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,6 +42,7 @@ export function LoginPage() {
 
     try {
       await signIn(email, password);
+      navigate(postAuthPath, { replace: true });
     } catch (err) {
       setError(toSignInError(err));
     } finally {
@@ -37,12 +50,16 @@ export function LoginPage() {
     }
   };
 
+  const signupHref = redirectTo
+    ? `/signup?redirect=${encodeURIComponent(redirectTo)}&role=student`
+    : "/signup";
+
   return (
     <AuthShell
       footer={
         <>
           New here?{" "}
-          <Link to="/signup" className="font-medium text-accent hover:underline">
+          <Link to={signupHref} className="font-medium text-accent hover:underline">
             Create an account
           </Link>
         </>

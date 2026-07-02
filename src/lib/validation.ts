@@ -30,6 +30,14 @@ export function validatePassword(password: string): string | null {
   return null;
 }
 
+export function validatePhone(phone: string): string | null {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 10 || digits.length > 15) {
+    return "Enter a valid mobile number (10–15 digits).";
+  }
+  return null;
+}
+
 export function validateFullName(fullName: string): string | null {
   const trimmed = fullName.trim();
   if (trimmed.length < 2) return "Enter your full name.";

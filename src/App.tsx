@@ -9,6 +9,8 @@ import { ForgotPasswordPage } from "@/pages/ForgotPasswordPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { EditProfilePage } from "@/pages/EditProfilePage";
+import { CourseDetailPage } from "@/pages/CourseDetailPage";
+import { DemoBookingSuccessPage } from "@/pages/DemoBookingSuccessPage";
 import { PortalRoute } from "@/components/auth/PortalRoute";
 
 export default function App() {
@@ -22,6 +24,8 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/courses/:slug" element={<CourseDetailPage />} />
+          <Route path="/demo/success" element={<DemoBookingSuccessPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/my-learnings" element={<Navigate to="/dashboard" replace />} />
           <Route element={<PortalRoute />}>
