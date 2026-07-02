@@ -94,6 +94,7 @@ export interface CourseDetail {
   projects: CourseProject[];
   careers: CareerPath[];
   feeStructure: FeeStructure | null;
+  showFeeStructure: boolean;
   demoSessions: DemoSession[];
 }
 

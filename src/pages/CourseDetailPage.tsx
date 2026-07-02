@@ -240,8 +240,14 @@ export function CourseDetailPage() {
         </div>
       )}
 
-      {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl border border-border mb-16 min-h-[280px] sm:min-h-[320px]">
+      {/* Hero — always keep a dark base layer so title/buttons stay readable */}
+      <section className="relative overflow-hidden rounded-3xl border border-border mb-16 min-h-[280px] sm:min-h-[320px] bg-slate-900">
+        <CourseCoverImage
+          src={null}
+          title={course.title}
+          variant="hero"
+          className="absolute inset-0 z-0"
+        />
         {heroImage ? (
           <>
             <CourseCoverImage
@@ -249,30 +255,25 @@ export function CourseDetailPage() {
               title={course.title}
               variant="hero"
               loading="eager"
-              className="absolute inset-0"
+              className="absolute inset-0 z-[1]"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/55 to-black/30 pointer-events-none" />
+            <div className="absolute inset-0 z-[2] bg-gradient-to-r from-black/80 via-black/60 to-black/40 pointer-events-none" />
           </>
         ) : (
-          <CourseCoverImage
-            src={null}
-            title={course.title}
-            variant="hero"
-            className="absolute inset-0"
-          />
+          <div className="absolute inset-0 z-[2] bg-gradient-to-r from-black/50 via-black/35 to-black/20 pointer-events-none" />
         )}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(79,70,229,0.12),transparent_50%)]" />
-        <div className="relative grid lg:grid-cols-2 gap-10 p-8 sm:p-10 lg:p-12">
-          <FadeIn>
+        <div className="absolute inset-0 z-[3] bg-[radial-gradient(circle_at_top_right,rgba(79,70,229,0.2),transparent_55%)] pointer-events-none" />
+        <div className="relative z-10 grid lg:grid-cols-2 gap-10 p-8 sm:p-10 lg:p-12">
+          <div>
             <div className="flex items-center gap-3 mb-4">
               <span className="text-xs font-semibold uppercase tracking-wider text-white/90">
                 {course.tag}
               </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-sm">
               {course.title}
             </h1>
-            <p className="mt-3 text-lg text-white/85">{course.tagline}</p>
+            <p className="mt-3 text-lg text-white/90">{course.tagline}</p>
 
             <div className="mt-6 flex flex-wrap gap-3 text-sm">
               <Badge>{course.level}</Badge>
@@ -299,15 +300,15 @@ export function CourseDetailPage() {
               </button>
               <a
                 href="#curriculum"
-                className="inline-flex items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-white transition-colors min-h-[2.75rem]"
+                className="inline-flex items-center justify-center rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10 transition-colors min-h-[2.75rem]"
               >
                 View curriculum
               </a>
             </div>
-          </FadeIn>
+          </div>
 
-          <FadeIn delay={0.1}>
-            <div className="rounded-2xl bg-white/80 backdrop-blur border border-border p-6 shadow-lg">
+          <div>
+            <div className="rounded-2xl bg-white/95 backdrop-blur border border-white/20 p-6 shadow-lg">
               <p className="text-xs font-semibold uppercase tracking-wider text-accent mb-3">
                 Your instructor
               </p>
@@ -315,7 +316,7 @@ export function CourseDetailPage() {
               <p className="text-sm text-accent font-medium mt-1">{course.instructor.title}</p>
               <p className="text-sm text-muted mt-3 leading-relaxed">{course.instructor.bio}</p>
             </div>
-          </FadeIn>
+          </div>
         </div>
       </section>
 
@@ -399,8 +400,15 @@ export function CourseDetailPage() {
       )}
 
       {/* Fee */}
-      {course.feeStructure && (
-        <Section title="Fee structure" subtitle="Flexible options — full details shared in your demo">
+      <Section
+        title="Fee structure"
+        subtitle={
+          course.showFeeStructure !== false
+            ? "Flexible options — full details shared in your demo"
+            : "Personal guidance on pricing"
+        }
+      >
+        {course.showFeeStructure !== false && course.feeStructure ? (
           <div className="rounded-2xl border border-border bg-white p-8 max-w-xl">
             <p className="text-sm text-muted uppercase tracking-wider font-semibold">
               {course.feeStructure.type === "emi" ? "Monthly EMI" : "One-time fee"}
@@ -423,8 +431,12 @@ export function CourseDetailPage() {
               <p className="text-sm text-muted mt-2">{course.feeStructure.scholarship}</p>
             )}
           </div>
-        </Section>
-      )}
+        ) : (
+          <p className="text-base text-muted leading-relaxed max-w-2xl">
+            Book a free demo — our tutor will personally explain the course structure and fee options.
+          </p>
+        )}
+      </Section>
 
       {/* Demo sessions */}
       <Section
