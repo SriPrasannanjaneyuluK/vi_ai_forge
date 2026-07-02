@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-import { EASE_OUT } from "@/lib/motion";
+import { EASE_OUT, SPRING_GENTLE } from "@/lib/motion";
 import { cn, scrollToSection } from "@/lib/utils";
+import { useBodyScrollLock } from "@/lib/hooks/useBodyScrollLock";
 import { Logo } from "@/components/layout/Logo";
 import {
   AuthNavActions,
@@ -17,7 +18,6 @@ import { usePortalAuth } from "@/context/PortalAuthContext";
 const SECTION_IDS = ["courses", "contact"] as const;
 const SCROLL_LOCK_MS = 1100;
 
-/** Single site-wide navbar — same size and layout on every page */
 export function Navbar() {
   const { pathname } = useLocation();
   const onHomePage = pathname === "/";
@@ -27,8 +27,12 @@ export function Navbar() {
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrollLocked, setScrollLocked] = useState(false);
   const [activeNav, setActiveNav] = useState<NavKey | null>("home");
   const navLockUntil = useRef(0);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  useBodyScrollLock(scrollLocked);
 
   const isNavLocked = () => Date.now() < navLockUntil.current;
 
@@ -39,7 +43,23 @@ export function Navbar() {
 
   useEffect(() => {
     setMobileOpen(false);
+    setScrollLocked(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (mobileOpen) setScrollLocked(true);
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileOpen(false);
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [mobileOpen]);
 
   useEffect(() => {
     if (pathname === MY_LEARNING_PATH) {
@@ -60,6 +80,8 @@ export function Navbar() {
 
   useEffect(() => {
     const onScroll = () => {
+      if (scrollLocked) return;
+
       setScrolled(window.scrollY > 20);
 
       if (!onHomePage || isNavLocked()) return;
@@ -72,7 +94,7 @@ export function Navbar() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [onHomePage]);
+  }, [onHomePage, scrollLocked]);
 
   useEffect(() => {
     if (!onHomePage) return;
@@ -85,7 +107,7 @@ export function Navbar() {
 
       const observer = new IntersectionObserver(
         ([entry]) => {
-          if (!entry.isIntersecting || isNavLocked()) return;
+          if (!entry.isIntersecting || isNavLocked() || scrollLocked) return;
           setActiveNav(id);
         },
         { rootMargin: "-40% 0px -50% 0px" }
@@ -96,7 +118,7 @@ export function Navbar() {
     });
 
     return () => observers.forEach((o) => o.disconnect());
-  }, [onHomePage]);
+  }, [onHomePage, scrollLocked]);
 
   const handleNavClick = (href: string) => {
     const id = href.replace("#", "");
@@ -115,13 +137,17 @@ export function Navbar() {
     setMobileOpen(false);
   };
 
-  const closeMobile = () => setMobileOpen(false);
+  const closeMobile = () => {
+    setMobileOpen(false);
+    menuButtonRef.current?.focus();
+  };
 
   return (
     <>
       <motion.header
         className={cn(
-          "fixed top-0 left-0 right-0 z-50 h-[var(--navbar-height)] bg-white transition-shadow duration-300",
+          "fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/80",
+          "pt-[var(--safe-top)] h-[calc(var(--navbar-height)+var(--safe-top))]",
           scrolled ? "shadow-md shadow-foreground/5" : ""
         )}
         style={{
@@ -133,12 +159,12 @@ export function Navbar() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.55, ease: EASE_OUT }}
       >
-        <nav className="mx-auto grid h-full max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 px-6 lg:px-8">
-          <Link to="/" className="flex h-full shrink-0 items-center leading-[0]">
-            <Logo size="nav" className="max-h-[calc(var(--navbar-height)-0.25rem)]" />
+        <nav className="mx-auto flex h-[var(--navbar-height)] max-w-7xl items-center justify-between gap-3 safe-px lg:px-8">
+          <Link to="/" className="flex shrink-0 items-center leading-[0]" onClick={closeMobile}>
+            <Logo size="nav" className="max-h-[calc(var(--navbar-height)-0.5rem)]" />
           </Link>
 
-          <div className="hidden lg:flex items-center justify-center">
+          <div className="hidden lg:flex flex-1 items-center justify-center">
             <CenterNavLinks
               activeNav={activeNav}
               onSectionClick={onHomePage ? handleNavClick : undefined}
@@ -147,46 +173,69 @@ export function Navbar() {
             />
           </div>
 
-          <div className="hidden lg:flex">
+          <div className="hidden lg:flex shrink-0">
             <AuthNavActions loading={loading} isLoggedIn={isLoggedIn} />
           </div>
 
           <button
+            ref={menuButtonRef}
             type="button"
-            className="lg:hidden justify-self-end p-2 text-foreground"
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
+            className="touch-target lg:hidden inline-flex items-center justify-center rounded-xl text-foreground active:bg-muted/40 transition-colors"
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-expanded={mobileOpen}
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </nav>
       </motion.header>
 
-      <AnimatePresence>
+      <AnimatePresence onExitComplete={() => setScrollLocked(false)}>
         {mobileOpen && (
-          <motion.div
-            className="fixed inset-0 z-40 bg-white/95 backdrop-blur-lg lg:hidden pt-[var(--navbar-height)]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <div className="flex flex-col items-center justify-center h-[calc(100%-var(--navbar-height))] gap-8">
-              <CenterNavLinks
-                activeNav={activeNav}
-                onSectionClick={onHomePage ? handleNavClick : undefined}
-                onHomeClick={handleHomeClick}
-                onMyLearningClick={handleMyLearningClick}
-                onNavigate={closeMobile}
-                layout="vertical"
-              />
+          <>
+            <motion.button
+              key="mobile-menu-backdrop"
+              type="button"
+              aria-label="Close menu"
+              className="fixed inset-0 z-40 bg-foreground/20 backdrop-blur-sm lg:hidden"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeMobile}
+            />
 
-              <MobileAuthNav
-                loading={loading}
-                isLoggedIn={isLoggedIn}
-                onNavigate={closeMobile}
-              />
-            </div>
-          </motion.div>
+            <motion.div
+              key="mobile-menu-panel"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation menu"
+              data-scroll-lock-scrollable
+              className="fixed inset-x-0 bottom-0 z-50 lg:hidden max-h-[min(88dvh,640px)] overflow-y-auto overscroll-contain rounded-t-3xl bg-white shadow-2xl shadow-foreground/10 safe-pb"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={SPRING_GENTLE}
+            >
+              <div className="mx-auto w-12 h-1 rounded-full bg-border mt-3 mb-6" />
+
+              <div className="px-6 pb-8 flex flex-col items-stretch gap-6">
+                <CenterNavLinks
+                  activeNav={activeNav}
+                  onSectionClick={onHomePage ? handleNavClick : undefined}
+                  onHomeClick={handleHomeClick}
+                  onMyLearningClick={handleMyLearningClick}
+                  onNavigate={closeMobile}
+                  layout="vertical"
+                />
+
+                <MobileAuthNav
+                  loading={loading}
+                  isLoggedIn={isLoggedIn}
+                  onNavigate={closeMobile}
+                />
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>

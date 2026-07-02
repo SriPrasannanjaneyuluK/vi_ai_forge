@@ -1,7 +1,13 @@
 export const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
+/** Snappy but smooth — good for mobile tap feedback */
+export const SPRING_SNAPPY = { type: "spring" as const, stiffness: 420, damping: 32 };
+
+/** Gentle scroll reveals */
+export const SPRING_GENTLE = { type: "spring" as const, stiffness: 260, damping: 28 };
+
 export const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 },
 };
 

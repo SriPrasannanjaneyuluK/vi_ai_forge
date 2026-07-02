@@ -5,8 +5,8 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-white border-t border-border">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 py-16">
+    <footer className="bg-white border-t border-border safe-pb">
+      <div className="mx-auto max-w-7xl safe-px lg:px-8 py-12 sm:py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           <div className="md:col-span-2">
             <Logo size="lg" />
@@ -24,7 +24,7 @@ export function Footer() {
                 <li key={link.href}>
                   <a
                     href={link.href === "/" ? "/" : link.href}
-                    className="text-muted hover:text-accent transition-colors text-sm"
+                    className="inline-flex min-h-[2.75rem] items-center text-muted hover:text-accent active:text-accent transition-colors text-sm"
                   >
                     {link.label}
                   </a>
@@ -44,7 +44,7 @@ export function Footer() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted hover:text-accent transition-colors text-sm"
+                    className="inline-flex min-h-[2.75rem] items-center text-muted hover:text-accent active:text-accent transition-colors text-sm"
                   >
                     {link.label}
                   </a>

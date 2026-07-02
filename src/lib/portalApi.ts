@@ -46,6 +46,7 @@ export function portalSignUp(input: {
   email: string;
   password: string;
   fullName: string;
+  phone: string;
   portalRole: "student" | "teacher";
 }) {
   return requestWithoutAuth<{

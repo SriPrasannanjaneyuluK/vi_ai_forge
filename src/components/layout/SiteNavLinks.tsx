@@ -15,7 +15,7 @@ const navLinkClass =
   "relative flex h-9 min-w-[6.5rem] items-center justify-center px-3 text-sm font-medium transition-colors duration-200";
 
 const mobileLinkClass =
-  "relative text-xl font-semibold text-foreground min-h-[2.5rem] flex items-center";
+  "relative w-full max-w-sm mx-auto rounded-2xl px-5 py-3.5 text-lg font-semibold text-foreground min-h-[3rem] flex items-center justify-center transition-colors active:scale-[0.98]";
 
 type NavTabProps = {
   navKey: NavKey;
@@ -40,7 +40,13 @@ function NavTab({
 }: NavTabProps) {
   const classes = cn(
     horizontal ? navLinkClass : mobileLinkClass,
-    active ? "text-accent" : "text-muted hover:text-foreground",
+    active
+      ? horizontal
+        ? "text-accent"
+        : "text-accent bg-accent/10 border-2 border-accent/25 shadow-sm shadow-accent/10"
+      : horizontal
+        ? "text-muted hover:text-foreground"
+        : "text-foreground bg-white border border-border shadow-sm active:bg-accent/5 active:border-accent/25",
     className
   );
 
@@ -161,7 +167,7 @@ export function CenterNavLinks({
     <div
       ref={tabsRef}
       className={cn(
-        horizontal ? "relative flex items-center" : "flex flex-col items-center gap-5",
+        horizontal ? "relative flex items-center" : "flex flex-col items-stretch gap-2 w-full",
         className
       )}
     >
@@ -282,24 +288,26 @@ export function AuthNavActions({ loading, isLoggedIn, onNavigate }: AuthNavActio
 
 export function MobileAuthNav({ loading, isLoggedIn, onNavigate }: AuthNavActionsProps) {
   return (
-    <div className="flex flex-col items-center gap-3 pt-2">
+    <div className="flex flex-col items-stretch gap-3 pt-2 border-t border-border">
       {loading ? (
-        <div className="h-9 w-9 rounded-full bg-muted/40 animate-pulse" />
+        <div className="mx-auto h-11 w-11 rounded-full bg-muted/40 animate-pulse" />
       ) : isLoggedIn ? (
-        <UserProfileMenu variant="navbar" onNavigate={onNavigate} />
+        <div className="flex justify-center">
+          <UserProfileMenu variant="navbar" onNavigate={onNavigate} />
+        </div>
       ) : (
         <>
           <Link
             to="/login"
             onClick={onNavigate}
-            className="text-lg font-medium text-muted min-h-[2.5rem] flex items-center"
+            className="w-full max-w-sm mx-auto rounded-2xl border border-border px-5 py-3.5 text-center text-base font-semibold text-foreground min-h-[3rem] flex items-center justify-center active:bg-muted/30"
           >
             Sign in
           </Link>
           <Link
             to="/signup"
             onClick={onNavigate}
-            className="flex h-10 min-w-[10rem] items-center justify-center rounded-full bg-accent px-6 text-sm font-semibold text-white shadow-sm shadow-accent/25"
+            className="w-full max-w-sm mx-auto flex min-h-[3rem] items-center justify-center rounded-2xl bg-accent px-6 text-base font-semibold text-white shadow-sm shadow-accent/25 active:opacity-90"
           >
             Enroll now
           </Link>

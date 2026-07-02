@@ -12,7 +12,7 @@ export function HowItWorks() {
 
   return (
     <section id="learnings" className="py-24 lg:py-32 bg-white">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl safe-px lg:px-8">
         <SectionHeading
           eyebrow={section.eyebrow}
           title={section.title}

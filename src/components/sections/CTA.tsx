@@ -37,7 +37,7 @@ export function CTA() {
 
   return (
     <section className="py-24 lg:py-32 bg-white">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl safe-px lg:px-8">
         <motion.div
           ref={ref}
           className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-accent/10 via-background to-accent-secondary/10 border border-border/50 p-10 sm:p-16 text-center"

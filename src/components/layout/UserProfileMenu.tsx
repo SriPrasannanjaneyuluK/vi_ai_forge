@@ -32,13 +32,19 @@ export function UserProfileMenu({
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node;
+      if (menuRef.current && !menuRef.current.contains(target)) {
         setOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
   }, []);
 
   if (!user) return null;
@@ -70,9 +76,9 @@ export function UserProfileMenu({
         type="button"
         onClick={() => setOpen((value) => !value)}
         className={cn(
-          "flex items-center justify-center rounded-full bg-accent font-semibold text-white",
-          "transition-opacity hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2",
-          isNavbar ? "h-9 w-9 text-xs shadow-sm shadow-accent/30" : "h-10 w-10 text-sm shadow-sm shadow-accent/30",
+          "touch-target flex items-center justify-center rounded-full bg-accent font-semibold text-white",
+          "transition-opacity hover:opacity-90 active:scale-95 focus:outline-none focus:ring-2 focus:ring-accent/40 focus:ring-offset-2",
+          isNavbar ? "h-11 w-11 text-xs shadow-sm shadow-accent/30" : "h-11 w-11 text-sm shadow-sm shadow-accent/30",
           open && "ring-2 ring-accent/30 ring-offset-2"
         )}
         aria-expanded={open}
@@ -85,7 +91,7 @@ export function UserProfileMenu({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-56 rounded-xl border border-border bg-white py-1.5 shadow-lg z-50"
+          className="absolute right-0 mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-white py-1.5 shadow-lg z-50"
         >
           <div className="px-4 py-2.5 border-b border-border">
             <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
@@ -98,7 +104,7 @@ export function UserProfileMenu({
               to={to}
               role="menuitem"
               onClick={closeMenu}
-              className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-foreground hover:bg-muted/30 transition-colors"
+              className="flex items-center gap-2.5 px-4 py-3 text-sm text-foreground active:bg-muted/30 transition-colors"
             >
               <Icon size={16} className="text-muted" />
               {label}
@@ -111,7 +117,7 @@ export function UserProfileMenu({
             type="button"
             role="menuitem"
             onClick={() => void handleSignOut()}
-            className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+            className="flex w-full items-center gap-2.5 px-4 py-3 text-sm text-red-600 active:bg-red-50 transition-colors"
           >
             <LogOut size={16} />
             Sign out
