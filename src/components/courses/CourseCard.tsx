@@ -67,7 +67,6 @@ export function CourseCard({ course, preview = false }: CourseCardProps) {
         <CourseCoverImage
           src={course.cardImageUrl}
           title={course.title || "Course"}
-          tag={course.tag}
           variant="card"
           imgClassName="transition-transform duration-500 group-hover:scale-105"
         />

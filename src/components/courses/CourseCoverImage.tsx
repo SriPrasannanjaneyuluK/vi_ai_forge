@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 type CourseCoverImageProps = {
   src?: string | null;
   title: string;
-  tag?: string;
   variant?: "card" | "hero";
   className?: string;
   imgClassName?: string;
@@ -15,7 +14,6 @@ type CourseCoverImageProps = {
 export function CourseCoverImage({
   src,
   title,
-  tag,
   variant = "card",
   className,
   imgClassName,
@@ -28,7 +26,6 @@ export function CourseCoverImage({
     return (
       <CourseImageFallback
         title={title}
-        tag={tag}
         variant={variant}
         className={className}
       />

@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 
 type CourseImageFallbackProps = {
   title: string;
-  tag?: string;
   variant?: "card" | "hero";
   className?: string;
 };
@@ -17,7 +16,6 @@ function courseInitials(title: string): string {
 
 export function CourseImageFallback({
   title,
-  tag,
   variant = "card",
   className,
 }: CourseImageFallbackProps) {

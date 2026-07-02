@@ -247,7 +247,6 @@ export function CourseDetailPage() {
             <CourseCoverImage
               src={heroImage}
               title={course.title}
-              tag={course.tag}
               variant="hero"
               loading="eager"
               className="absolute inset-0"
@@ -258,7 +257,6 @@ export function CourseDetailPage() {
           <CourseCoverImage
             src={null}
             title={course.title}
-            tag={course.tag}
             variant="hero"
             className="absolute inset-0"
           />
