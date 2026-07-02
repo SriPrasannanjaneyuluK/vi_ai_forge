@@ -36,6 +36,7 @@ interface PortalAuthContextValue {
     email: string;
     password: string;
     fullName: string;
+    phone: string;
     portalRole: PortalRole;
   }) => Promise<PortalUser>;
   resetPassword: (email: string) => Promise<void>;
@@ -136,11 +137,13 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
     email,
     password,
     fullName,
+    phone,
     portalRole,
   }: {
     email: string;
     password: string;
     fullName: string;
+    phone: string;
     portalRole: PortalRole;
   }) => {
     if (!isApiConfigured) throw new Error("API is not configured");
@@ -149,6 +152,7 @@ export function PortalAuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       fullName,
+      phone,
       portalRole,
     });
 

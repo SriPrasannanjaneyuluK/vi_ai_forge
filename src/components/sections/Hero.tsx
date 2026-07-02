@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useCourses } from "@/context/CoursesContext";
@@ -15,12 +16,19 @@ const SLIDE_COUNT = 2;
 const hero = SECTIONS.hero;
 
 export function Hero() {
-  const { latestCourse } = useCourses();
+  const { latestCourse, courses } = useCourses();
 
   const featuredCourse = useMemo<LatestCourse>(() => {
     if (latestCourse?.title?.trim()) return latestCourse;
     return { ...HERO_FEATURED_COURSE, stack: [...HERO_FEATURED_COURSE.stack] };
   }, [latestCourse]);
+
+  const featuredCourseSlug = useMemo(() => {
+    const match = courses.find(
+      (c) => c.title.toLowerCase() === featuredCourse.title.toLowerCase()
+    );
+    return match?.id ?? courses[0]?.id ?? null;
+  }, [courses, featuredCourse.title]);
 
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -185,14 +193,24 @@ export function Hero() {
               </div>
 
               <div className="mt-8 sm:mt-10 px-4 sm:px-0">
-                <MagneticButton
-                  variant="primary"
-                  className="w-full sm:w-auto"
-                  onClick={() => scrollToSection("#courses")}
-                >
-                  {hero.viewCourseDetailsLabel}
-                  <ArrowRight size={16} />
-                </MagneticButton>
+                {featuredCourseSlug ? (
+                  <Link
+                    to={`/courses/${featuredCourseSlug}`}
+                    className="relative inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 sm:py-3 text-sm font-semibold min-h-[2.75rem] bg-accent text-white shadow-lg shadow-accent/25 hover:shadow-xl hover:shadow-accent/30 transition-colors w-full sm:w-auto"
+                  >
+                    {hero.viewCourseDetailsLabel}
+                    <ArrowRight size={16} />
+                  </Link>
+                ) : (
+                  <MagneticButton
+                    variant="primary"
+                    className="w-full sm:w-auto"
+                    onClick={() => scrollToSection("#courses")}
+                  >
+                    {hero.viewCourseDetailsLabel}
+                    <ArrowRight size={16} />
+                  </MagneticButton>
+                )}
               </div>
             </motion.div>
           )}
