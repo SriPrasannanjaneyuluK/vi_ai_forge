@@ -1,32 +1,38 @@
 import { useRef, useState } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
-import { Send, CheckCircle, AlertCircle } from "lucide-react";
+import { Send, CheckCircle, AlertCircle, Lock } from "lucide-react";
 import { SECTIONS } from "@/lib/constants";
 import { submitWaitlist } from "@/lib/api";
 import { EASE_OUT } from "@/lib/motion";
 import { MagneticButton } from "@/components/motion/MagneticButton";
+import { usePortalAuth } from "@/context/PortalAuthContext";
 
 const cta = SECTIONS.cta;
 
 export function CTA() {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: "-60px", amount: 0.15 });
+  const { user } = usePortalAuth();
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Logged-in visitors join with their registered email — locked so it can't be changed.
+  const lockedEmail = user?.email ?? null;
+  const effectiveEmail = lockedEmail ?? email;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || submitting) return;
+    if (!effectiveEmail.trim() || submitting) return;
 
     setSubmitting(true);
     setError(null);
 
     try {
-      await submitWaitlist(email.trim());
+      await submitWaitlist(effectiveEmail.trim());
       setSubmitted(true);
-      setEmail("");
+      if (!lockedEmail) setEmail("");
       setTimeout(() => setSubmitted(false), 4000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to join waitlist");
@@ -63,12 +69,19 @@ export function CTA() {
           >
             <input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={effectiveEmail}
+              onChange={(e) => !lockedEmail && setEmail(e.target.value)}
               placeholder={cta.emailPlaceholder}
               required
+              readOnly={Boolean(lockedEmail)}
               disabled={submitting}
-              className="w-full sm:flex-1 rounded-full border border-border bg-white px-5 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 transition-shadow disabled:opacity-60"
+              aria-readonly={Boolean(lockedEmail)}
+              title={lockedEmail ? "Joining with your account email" : undefined}
+              className={`w-full sm:flex-1 rounded-full border border-border px-5 py-3 text-sm placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent/30 transition-shadow disabled:opacity-60 ${
+                lockedEmail
+                  ? "bg-muted/40 text-muted cursor-not-allowed"
+                  : "bg-white text-foreground"
+              }`}
             />
             <MagneticButton variant="primary" type="submit" disabled={submitting}>
               <span className="flex items-center gap-2">
@@ -77,6 +90,14 @@ export function CTA() {
               </span>
             </MagneticButton>
           </form>
+
+          {lockedEmail && (
+            <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted">
+              <Lock size={12} />
+              Joining with your account email{" "}
+              <span className="font-medium text-foreground">{lockedEmail}</span>
+            </p>
+          )}
 
           <AnimatePresence>
             {submitted && (
