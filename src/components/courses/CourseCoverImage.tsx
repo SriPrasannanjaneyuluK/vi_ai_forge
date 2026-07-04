@@ -38,7 +38,7 @@ export function CourseCoverImage({
       alt=""
       loading={loading}
       onError={() => setFailed(true)}
-      className={cn("h-full w-full object-cover", imgClassName)}
+      className={cn("h-full w-full object-cover", className, imgClassName)}
     />
   );
 }

@@ -18,7 +18,6 @@ import { PageLayout, btnPrimaryClass } from "@/components/layout/PageLayout";
 import { CurriculumAccordion } from "@/components/courses/CurriculumAccordion";
 import { DemoBookingDialog } from "@/components/courses/DemoBookingDialog";
 import { DemoSlotPickerDialog } from "@/components/courses/DemoSlotPickerDialog";
-import { CourseCoverImage } from "@/components/courses/CourseCoverImage";
 import { FadeIn } from "@/components/motion/FadeIn";
 import { bookDemoSession, fetchCourseDetail } from "@/lib/api";
 import { formatDemoSessionDate, formatDemoSessionTime } from "@/lib/demoSessionFormat";
@@ -240,22 +239,21 @@ export function CourseDetailPage() {
         </div>
       )}
 
-      {/* Hero — bounded banner band on top, content on a solid dark panel below */}
-      <section className="relative overflow-hidden rounded-3xl border border-border mb-16 bg-slate-900">
-        {/* Banner strip: fixed, banner-sized height so tall images are cropped, not full-page */}
-        <div className="relative h-40 sm:h-52 lg:h-60 w-full bg-slate-800">
-          <CourseCoverImage
-            src={heroImage}
-            title={course.title}
-            variant="hero"
-            loading="eager"
-            className="absolute inset-0"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent pointer-events-none" />
-        </div>
-
-        {/* Content panel */}
-        <div className="relative grid lg:grid-cols-2 gap-8 p-8 sm:p-10 lg:p-12 -mt-6">
+      {/* Hero — compact content section; banner image is a subtle background only, not a large block */}
+      <section
+        className="relative overflow-hidden rounded-3xl border border-border mb-16 bg-slate-900"
+        style={
+          heroImage
+            ? {
+                backgroundImage: `linear-gradient(to right, rgb(15 23 42 / 0.94), rgb(15 23 42 / 0.88)), url(${heroImage})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }
+            : undefined
+        }
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(79,70,229,0.15),transparent_55%)]" />
+        <div className="relative grid lg:grid-cols-2 gap-8 p-8 sm:p-10 lg:p-12">
           <div>
             <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
               {course.tag}
