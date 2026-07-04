@@ -1,19 +1,30 @@
-import { useState } from "react";
-import { Mail, MapPin, Send, CheckCircle, AlertCircle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Mail, MapPin, Send, CheckCircle, AlertCircle, Lock } from "lucide-react";
 import { ACADEMY, SECTIONS, SOCIAL_LINKS } from "@/lib/constants";
 import { submitContact } from "@/lib/api";
 import { FadeIn, SectionHeading } from "@/components/motion/FadeIn";
 import { MagneticButton } from "@/components/motion/MagneticButton";
+import { usePortalAuth } from "@/context/PortalAuthContext";
 
 const contact = SECTIONS.contact;
 
 export function Contact() {
+  const { user } = usePortalAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Logged-in visitors reach out from their registered email — locked so it can't be changed.
+  const lockedEmail = user?.email ?? null;
+  const effectiveEmail = lockedEmail ?? email;
+
+  // Prefill the name from the profile once it loads, but keep it editable.
+  useEffect(() => {
+    if (user?.fullName) setName((prev) => prev || user.fullName!);
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,10 +34,10 @@ export function Contact() {
     setError(null);
 
     try {
-      await submitContact({ name, email, message });
+      await submitContact({ name, email: effectiveEmail, message });
       setSubmitted(true);
-      setName("");
-      setEmail("");
+      setName(user?.fullName ?? "");
+      if (!lockedEmail) setEmail("");
       setMessage("");
       setTimeout(() => setSubmitted(false), 4000);
     } catch (err) {
@@ -128,12 +139,25 @@ export function Contact() {
                   id="contact-email"
                   type="email"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={effectiveEmail}
+                  onChange={(e) => !lockedEmail && setEmail(e.target.value)}
+                  readOnly={Boolean(lockedEmail)}
                   disabled={submitting}
-                  className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:opacity-60"
+                  aria-readonly={Boolean(lockedEmail)}
+                  title={lockedEmail ? "Using your account email" : undefined}
+                  className={`w-full rounded-xl border border-border px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 disabled:opacity-60 ${
+                    lockedEmail
+                      ? "bg-muted/40 text-muted cursor-not-allowed"
+                      : "bg-background"
+                  }`}
                   placeholder="you@email.com"
                 />
+                {lockedEmail && (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
+                    <Lock size={12} />
+                    Sent from your account email — sign out to use a different address.
+                  </p>
+                )}
               </div>
               <div>
                 <label

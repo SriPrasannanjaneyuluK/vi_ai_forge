@@ -240,40 +240,30 @@ export function CourseDetailPage() {
         </div>
       )}
 
-      {/* Hero — always keep a dark base layer so title/buttons stay readable */}
-      <section className="relative overflow-hidden rounded-3xl border border-border mb-16 min-h-[280px] sm:min-h-[320px] bg-slate-900">
-        <CourseCoverImage
-          src={null}
-          title={course.title}
-          variant="hero"
-          className="absolute inset-0 z-0"
-        />
-        {heroImage ? (
-          <>
-            <CourseCoverImage
-              src={heroImage}
-              title={course.title}
-              variant="hero"
-              loading="eager"
-              className="absolute inset-0 z-[1]"
-            />
-            <div className="absolute inset-0 z-[2] bg-gradient-to-r from-black/80 via-black/60 to-black/40 pointer-events-none" />
-          </>
-        ) : (
-          <div className="absolute inset-0 z-[2] bg-gradient-to-r from-black/50 via-black/35 to-black/20 pointer-events-none" />
-        )}
-        <div className="absolute inset-0 z-[3] bg-[radial-gradient(circle_at_top_right,rgba(79,70,229,0.2),transparent_55%)] pointer-events-none" />
-        <div className="relative z-10 grid lg:grid-cols-2 gap-10 p-8 sm:p-10 lg:p-12">
+      {/* Hero — bounded banner band on top, content on a solid dark panel below */}
+      <section className="relative overflow-hidden rounded-3xl border border-border mb-16 bg-slate-900">
+        {/* Banner strip: fixed, banner-sized height so tall images are cropped, not full-page */}
+        <div className="relative h-40 sm:h-52 lg:h-60 w-full bg-slate-800">
+          <CourseCoverImage
+            src={heroImage}
+            title={course.title}
+            variant="hero"
+            loading="eager"
+            className="absolute inset-0"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/50 to-transparent pointer-events-none" />
+        </div>
+
+        {/* Content panel */}
+        <div className="relative grid lg:grid-cols-2 gap-8 p-8 sm:p-10 lg:p-12 -mt-6">
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <span className="text-xs font-semibold uppercase tracking-wider text-white/90">
-                {course.tag}
-              </span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white drop-shadow-sm">
+            <span className="text-xs font-semibold uppercase tracking-wider text-white/70">
+              {course.tag}
+            </span>
+            <h1 className="mt-3 text-3xl sm:text-4xl font-bold tracking-tight text-white">
               {course.title}
             </h1>
-            <p className="mt-3 text-lg text-white/90">{course.tagline}</p>
+            <p className="mt-3 text-lg text-white/80">{course.tagline}</p>
 
             <div className="mt-6 flex flex-wrap gap-3 text-sm">
               <Badge>{course.level}</Badge>
@@ -307,7 +297,7 @@ export function CourseDetailPage() {
             </div>
           </div>
 
-          <div>
+          <div className="lg:self-center">
             <div className="rounded-2xl bg-white/95 backdrop-blur border border-white/20 p-6 shadow-lg">
               <p className="text-xs font-semibold uppercase tracking-wider text-accent mb-3">
                 Your instructor
